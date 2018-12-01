@@ -766,6 +766,26 @@ define dep_fetch
 			fail))
 endef
 
+GIT_VSN := $(shell git --version | grep -oE "[0-9]{1,2}\.[0-9]{1,2}")
+GIT_VSN_17_COMP := $(shell echo -e "$(GIT_VSN)\n1.7" | sort -V | tail -1)
+ifeq ($(GIT_VSN_17_COMP),1.7)
+	MAYBE_SHALLOW :=
+else
+	MAYBE_SHALLOW := -c advice.detachedHead=false --depth 1
+endif
+
+# Override default git full-clone with depth=1 shallow-clone
+ifeq ($(GIT_VSN_17_COMP),1.7)
+define dep_fetch_git-emqx
+	git clone -q -n -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call dep_name,$(1)); \
+		cd $(DEPS_DIR)/$(call dep_name,$(1)) && git checkout -q $(call dep_commit,$(1))
+endef
+else
+define dep_fetch_git-emqx
+	git clone -q -c advice.detachedHead=false --depth 1 -b $(call dep_commit,$(1)) -- $(call dep_repo,$(1)) $(DEPS_DIR)/$(call dep_name,$(1))
+endef
+endif
+
 define dep_target
 $(DEPS_DIR)/$(call dep_name,$1):
 	$(eval DEP_NAME := $(call dep_name,$1))
