@@ -335,7 +335,10 @@ define dep_autopatch
 		$(call erlang,$(call dep_autopatch_appsrc.erl,$(1))); \
 		$(call dep_autopatch_erlang_mk,$(1)); \
 	elif [ -f $(DEPS_DIR)/$(1)/Makefile ]; then \
-		if [ 0 != `grep -c "include ../\w*\.mk" $(DEPS_DIR)/$(1)/Makefile` ]; then \
+		if [ 0 != `grep -c "include erlang.mk" $(DEPS_DIR)/$(1)/Makefile` ]; then \
+			$(call erlang,$(call dep_autopatch_appsrc.erl,$(1))); \
+			$(call dep_autopatch_erlang_mk,$(1)); \
+		elif [ 0 != `grep -c "include ../\w*\.mk" $(DEPS_DIR)/$(1)/Makefile` ]; then \
 			$(call dep_autopatch2,$(1)); \
 		elif [ 0 != `grep -ci rebar $(DEPS_DIR)/$(1)/Makefile` ]; then \
 			$(call dep_autopatch2,$(1)); \
