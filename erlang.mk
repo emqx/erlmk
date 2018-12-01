@@ -789,6 +789,15 @@ define dep_fetch_git-emqx
 endef
 endif
 
+core_http_get-emqx = curl -Lf$(if $(filter-out 0,$(V)),,s)o $(call core_native_path,$1) $2
+
+define dep_fetch_hex-emqx
+    mkdir -p $(ERLANG_MK_TMP)/hex $(DEPS_DIR)/$1; \
+    $(call core_http_get-emqx,$(ERLANG_MK_TMP)/hex/$1.tar,\
+        https://repo.hex.pm/tarballs/$1-$(strip $(word 2,$(dep_$1))).tar); \
+    tar -xOf $(ERLANG_MK_TMP)/hex/$1.tar contents.tar.gz | tar -C $(DEPS_DIR)/$1 -xzf -;
+endef
+
 define dep_target
 $(DEPS_DIR)/$(call dep_name,$1):
 	$(eval DEP_NAME := $(call dep_name,$1))
