@@ -142,18 +142,18 @@ dep-vsn-check:
 					true -> CUR_BRANCH; \
 					false -> \"testing\" \
 				 end, \
-		GenDeps = fun Iter-deps ([Dep | Deps], Acc) when is_tuple(Dep) -> \
-						  [Dep | Acc]; \
-					  Iter-deps ([Dep | Deps], Acc) -> \
-                          [{Deps, BRANCH} | Acc] \
-	                  Iter-deps ([], Acc) -> \
+		GenDeps = fun Iterdeps([Dep | Deps], Acc) when is_tuple(Dep) -> \
+						  Iterdeps(Deps, [Dep | Acc]); \
+					  Iterdeps([Dep | Deps], Acc) -> \
+                          Iterdeps(Deps, [{Dep, BRANCH} | Acc]); \
+	                  Iterdeps([], Acc) -> \
 						  Acc \
 	              end, \
 	    GetDeps = fun(Key, N, TupleList) -> \
-	                   case lists:keyfind() of \
-	                       {ok, Deps} -> GenDeps(Deps, []); \
+	                   case lists:keyfind(Key, N, TupleList) of \
+	                       {_, Deps} -> GenDeps(Deps, []); \
 	                       false -> [] \
-	                   end, \
+	                   end \
 	               end, \
 		Deps1 = GetDeps(deps, 1, Conf), \
 		Deps2 = GetDeps(github_emqx_deps, 1, Conf), \
