@@ -138,12 +138,12 @@ dep-vsn-check:
 		"MkVsns = lists:sort(lists:flatten($(dep-versions))), \
 		{ok, Conf} = file:consult('rebar.config'), \
 		CUR_BRANCH = os:cmd(\"git branch | grep -e '^*' | cut -d' ' -f 2\") -- \"\\n\", \
-		BRANCH = case lists:member(CUR_BRANCH, [\"master\", \"develop\", \"testing\"]) of
-					true -> CUR_BRANCH;
-					false -> \"testing\"
+		BRANCH = case lists:member(CUR_BRANCH, [\"master\", \"develop\", \"testing\"]) of \
+					true -> CUR_BRANCH; \
+					false -> \"testing\" \
 				 end, \
 		GenDeps = fun Iter-deps ([Dep | Deps], Acc) when is_tuple(Dep) -> \
-						  [Dep | Acc];
+						  [Dep | Acc]; \
 					  Iter-deps ([Dep | Deps], Acc) -> \
                           [{Deps, BRANCH} | Acc] \
 	                  Iter-deps ([], Acc) -> \
