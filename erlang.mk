@@ -137,10 +137,31 @@ dep-vsn-check:
 	$(verbose) erl -noshell -eval \
 		"MkVsns = lists:sort(lists:flatten($(dep-versions))), \
 		{ok, Conf} = file:consult('rebar.config'), \
-		{_, Deps1} = lists:keyfind(deps, 1, Conf), \
-		{_, Deps2} = lists:keyfind(github_emqx_deps, 1, Conf), \
+		CUR_BRANCH = os:cmd(\"git branch | grep -e '^*' | cut -d' ' -f 2\") -- \"\\n\", \
+		BRANCH = case lists:member(CUR_BRANCH, [\"master\", \"develop\", \"testing\"]) of
+					true -> CUR_BRANCH;
+					false -> \"testing\"
+				 end, \
+		GenDeps = fun Iter-deps ([Dep | Deps], Acc) when is_tuple(Dep) -> \
+						  [Dep | Acc];
+					  Iter-deps ([Dep | Deps], Acc) -> \
+                          [{Deps, BRANCH} | Acc] \
+	                  Iter-deps ([], Acc) -> \
+						  Acc \
+	              end, \
+	    GetDeps = fun(Key, N, TupleList) -> \
+	                   case lists:keyfind() of \
+	                       {ok, Deps} -> GenDeps(Deps, []); \
+	                       false -> [] \
+	                   end, \
+	               end, \
+		Deps1 = GetDeps(deps, 1, Conf), \
+		Deps2 = GetDeps(github_emqx_deps, 1, Conf), \
+		Deps3 = GetDeps(github_emqx_libs, 1, Conf), \
+		Deps4 = GetDeps(github_emqx_projects, 1, Conf), \
+		Deps = Deps1 ++ Deps2 ++ Deps3 ++ Deps4, \
 		F = fun({N, V}) when is_list(V) -> {N, V}; ({N, {git, _, {branch, V}}}) -> {N, V} end, \
-		RebarVsns = lists:sort(lists:map(F, Deps1 ++ Deps2)), \
+		RebarVsns = lists:sort(lists:map(F, Deps)), \
 		case {RebarVsns -- MkVsns, MkVsns -- RebarVsns} of \
 		  {[], []} -> halt(0); \
 		  {Rebar, Mk} -> erlang:error({deps_version_discrepancy, [{rebar, Rebar}, {mk, Mk}]}) \
