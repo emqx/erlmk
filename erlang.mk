@@ -154,12 +154,17 @@ dep-vsn-check:
 	                       {_, Deps} -> GenDeps(Deps, []); \
 	                       false -> [] \
 	                   end \
-	               end, \
-		Deps1 = GetDeps(deps, 1, Conf), \
-		Deps2 = GetDeps(github_emqx_deps, 1, Conf), \
-		Deps3 = GetDeps(github_emqx_libs, 1, Conf), \
-		Deps4 = GetDeps(github_emqx_projects, 1, Conf), \
-		Deps = Deps1 ++ Deps2 ++ Deps3 ++ Deps4, \
+	              end, \
+        GetProfile = fun(RebarConf) -> \
+                         Profiles = proplists:get_value(profiles, RebarConf, []), \
+	                     proplists:get_value(test, Profiles, []) \
+                     end, \
+	    Deps1 = lists:foldl(fun(DEP, Acc) -> \
+								GetDeps(DEP, 1, Conf) ++ Acc \
+						    end, [], \
+						   [deps, github_emqx_deps, github_emqx_libs, github_emqx_projects]), \
+		Deps2 = GetDeps(deps, 1, GetProfile(Conf)), \
+		Deps = Deps1 ++ Deps2, \
 		F = fun({N, V}) when is_list(V) -> {N, V}; ({N, {git, _, {branch, V}}}) -> {N, V} end, \
 		RebarVsns = lists:sort(lists:map(F, Deps)), \
 		case {RebarVsns -- MkVsns, MkVsns -- RebarVsns} of \
